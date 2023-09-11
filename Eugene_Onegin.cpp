@@ -4,7 +4,7 @@
 
 int main(void)
 {
-    char path[] = "text.txt";
+    char path[] = "Eugene_Onegin.txt";
 
     FILE *file = fopen(path, "r");
 
