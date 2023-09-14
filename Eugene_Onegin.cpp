@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <sys\stat.h>
 
+
+//TODO: —Ä–∞–∑–¥–µ–ª–∏—Ç—å –Ω–∞ —Ñ–∞–π–ª—ã –∏ —Ñ—É–Ω–∫—Ü–∏–∏, –Ω–∞–ø–∏—Å–∞—Ç—å –±—ã—Å—Ç—Ä—É—é —Å–æ—Ä—Ç–∏—Ä–æ–≤–∫—É –≤ –æ—Ç–¥–µ–ª—å–Ω—ã–π —Ñ–∞–π–ª –∏ –ø—Ä–∏–º–µ–Ω–∏—Ç—å –∫ –º–∞—Å—Å–∏–≤—É —Å—Ç—Ä–æ–∫
 int main(void)
 {
     char path[] = "Eugene_Onegin.txt";
@@ -29,16 +31,16 @@ int main(void)
 
     int lines_count = 1;
 
-    for (int i = 0; i < buf_length; i++) //ÒÌ‡˜‡Î‡ ÔÓÒ˜ËÚ‡ÂÏ ÍÓÎ-‚Ó ÒÚÓÍ
+    for (int i = 0; i < buf_length; i++) //—Å–Ω–∞—á–∞–ª–∞ –ø–æ—Å—á–∏—Ç–∞–µ–º –∫–æ–ª-–≤–æ —Å—Ç—Ä–æ–∫
     {
         if (buf[i] == '\n')
             lines_count++;
     }
 
-    char **text = (char**)calloc(lines_count, sizeof(char*)); //ÒÓÁ‰‡‰ËÏ Ï‡ÒÒË‚ „‰Â ·Û‰ÛÚ ı‡ÌËÚ¸Òˇ ÛÍ‡Á‡ÚÂÎË Ì‡ Ì‡˜‡Î‡ ÒÚÓÍ
+    char **text = (char**)calloc(lines_count, sizeof(char*)); //—Å–æ–∑–¥–∞–¥–∏–º –º–∞—Å—Å–∏–≤ –≥–¥–µ –±—É–¥—É—Ç —Ö—Ä–∞–Ω–∏—Ç—å—Å—è —É–∫–∞–∑–∞—Ç–µ–ª–∏ –Ω–∞ –Ω–∞—á–∞–ª–∞ —Å—Ç—Ä–æ–∫
 
     int temporary_lines_count = 0;
-    text[temporary_lines_count++] = buf; //Ì‡˜‡ÎÓ ÔÂ‚ÓÈ ÒÚÓÍË
+    text[temporary_lines_count++] = buf; //–Ω–∞—á–∞–ª–æ –ø–µ—Ä–≤–æ–π —Å—Ç—Ä–æ–∫–∏
 
     for (int i = 0; i < buf_length; i++)
     {
