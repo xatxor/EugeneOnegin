@@ -45,18 +45,28 @@ int main(int argc, char *argv[])
     Text_ctor(&onegin);
 
     onegin.path = argv[1];
+    onegin.path = "onegin.txt";
 
-    if (error_manager(get_file_buf(&onegin)) != OK)
+    if (Errors err = get_file_buf(&onegin))
+    {
+        error_manager(err);
         return 0;
+    }
 
-    if (error_manager(get_lines(&onegin)) != OK)
+    if (Errors err = get_lines(&onegin))
+    {
+        error_manager(err);
         return 0;
+    }
 
     printf("Before sorting:\n");
     print_lines(&onegin);
 
-    if (error_manager(quick_sort(&onegin)) != OK)
+    if (Errors err = quick_sort(&onegin))
+    {
+        error_manager(err);
         return 0;
+    }
 
     printf("After sorting:\n");
     print_lines(&onegin);
@@ -127,7 +137,6 @@ Errors get_lines(Text* text)
     if (error_manager(err) != OK)
         return err;
 
-    //realloc(text->lines, (text->lines_count)*sizeof(char*));
     text->lines = (char**)calloc(text->lines_count, sizeof(char*));
 
     assert(text->lines);
@@ -238,12 +247,10 @@ Errors quick_sort(Text *text)
     return OK;
 }
 
-int compare_lines(const void *a, const void *b) //сравнение по первой букве строки
+int compare_lines(const void *a, const void *b)
 {
-    int arg1 = **(const char**)a;
-    int arg2 = **(const char**)b;
+    const char* arg1 = *(const char**)a;
+    const char* arg2 = *(const char**)b;
 
-    if (arg1 < arg2) return -1;
-    if (arg1 > arg2) return 1;
-    return 0;
+    return strcmp(arg1, arg2);
 }
