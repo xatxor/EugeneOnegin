@@ -13,12 +13,16 @@ enum Errors
     NULLF = 4
 };
 
+struct Line {
+    char* start_ptr;
+    int length;
+};
+
 struct Text {
     char* path;
     char* buffer;
     int buffer_count;
-    char** lines;
-    int* lines_lengths;
+    Line* lines;
     int lines_count;
 };
 
@@ -43,17 +47,17 @@ int is_letter(char c);
 
 int main(int argc, char *argv[])
 {
-    /*if (argc != 2)
+    if (argc != 2)
     {
         printf("There is no text path in arguments! Bye!");
         return 0;
-    }*/
+    }
 
     Text onegin = {};
     Text_ctor(&onegin);
 
-    //onegin.path = argv[1];
-    onegin.path = "onegin.txt";
+    onegin.path = argv[1];
+    //onegin.path = "onegin.txt";
 
     if (Errors err = get_file_buf(&onegin))
     {
@@ -72,7 +76,7 @@ int main(int argc, char *argv[])
     printf("Before:\n");
     print_lines(&onegin);
 
-    /*printf("Trimmed sorting:\n");
+    printf("Trimmed sorting:\n");
     if (Errors err = quick_sort(&onegin, compare_lines_trimmed))
     {
         error_manager(err);
@@ -88,7 +92,7 @@ int main(int argc, char *argv[])
         error_manager(err);
         return 0;
     }
-    print_lines(&onegin);*/
+    print_lines(&onegin);
 
     Text_dtor(&onegin);
 
@@ -155,33 +159,36 @@ Errors get_lines(Text* text)
     if (error_manager(err) != OK)
         return err;
 
-    text->lines = (char**)calloc(text->lines_count, sizeof(char*));
-    text->lines_lengths = (int*)calloc(text->lines_count, sizeof(int));
+    text->lines = (Line*)calloc(text->lines_count, sizeof(Line));
 
     assert(text->lines);
 
     int current_length = 0;
     int temporary_lines_count = 0;
 
-    text->lines[temporary_lines_count++] = text->buffer; //начало первой строки
+    Line current_line = {NULL, 0};
+
+    for (int i = 0; i < text->lines_count; i++)
+    {
+        text->lines[i] = current_line;
+    }
+
+    text->lines[temporary_lines_count].start_ptr = text->buffer;
 
     for (int i = 0; i < text->buffer_count; i++)
     {
         current_length++;
+
         if (text->buffer[i] == '\n')
         {
-            text->lines_lengths[temporary_lines_count-1] = current_length - 1;
+            text->lines[temporary_lines_count].length = current_length - 1;
+            temporary_lines_count++;
+            text->lines[temporary_lines_count].start_ptr = text->buffer + i + 1;
             current_length = 0;
-            text->lines[temporary_lines_count++] = text->buffer + i + 1;
             text->buffer[i] = '\0';
         }
     }
-    text->lines_lengths[temporary_lines_count-1] = current_length - 2;
-
-    for (int i = 0; i < text->lines_lengths[temporary_lines_count-1]; i++)
-    {
-        printf("%c (%d) ", text->lines[temporary_lines_count-1][i], text->lines[temporary_lines_count-1][i]);
-    }
+    text->lines[temporary_lines_count].length = strlen(text->lines[temporary_lines_count].start_ptr);
 
     return OK;
 }
@@ -193,7 +200,7 @@ Errors print_lines(Text* text)
     printf("lines = %p, lines_count = %d\n", text->lines, text->lines_count);
     for (int i = 0; i < text->lines_count; i++)
     {
-        printf("lines[%d] = %p = %s ; length = %d\n", i, text->lines[i], text->lines[i], text->lines_lengths[i]);
+        printf("lines[%d] = length %d = %p = %s\n", i, text->lines[i].length, text->lines[i].start_ptr, text->lines[i].start_ptr);
     }
     return OK;
 }
@@ -216,7 +223,6 @@ Errors Text_ctor(Text* text)
     text->buffer = NULL;
     text->buffer_count = 0;
     text->lines = NULL;
-    text->lines_lengths = NULL;
     text->lines_count = 0;
 
     return OK;
@@ -226,7 +232,6 @@ Errors Text_dtor(Text* text)
 {
     free(text->buffer);
     free(text->lines);
-    free(text->lines_lengths);
     text->path = NULL;
     text->buffer_count = -1;
     text->lines_count = -1;
@@ -241,7 +246,6 @@ Errors Text_verif(Text *text)
     assert(text->buffer);
     assert(text->buffer_count > 0);
     assert(text->lines);
-    assert(text->lines_lengths);
     assert(text->lines_count > 0);
 
     return OK;
@@ -274,24 +278,23 @@ Errors quick_sort(Text *text, int (*comp)(const void *, const void *))
 {
     Text_verif(text);
 
-    qsort(text->lines, text->lines_count, sizeof(char*), comp);
+    qsort(text->lines, text->lines_count, sizeof(Line), comp);
 
     return OK;
 }
 
-
 int compare_lines_strcmp(const void *a, const void *b)
 {
-    const char* arg1 = *(const char**)a;
-    const char* arg2 = *(const char**)b;
+    const char* arg1 = (const char*)(((Line*)a)->start_ptr);
+    const char* arg2 = (const char*)(((Line*)b)->start_ptr);
 
     return strcmp(arg1, arg2);
 }
 
 int compare_lines(const void *a, const void *b)
 {
-    const char* arg1 = *(const char**)a;
-    const char* arg2 = *(const char**)b;
+    const char* arg1 = (const char*)(((Line*)a)->start_ptr);
+    const char* arg2 = (const char*)(((Line*)b)->start_ptr);
 
     int i = 0;
     char c1 = arg1[i];
@@ -314,17 +317,19 @@ int compare_lines(const void *a, const void *b)
         c2 = arg2[i];
     }
 
-    if (c1 < c2)
+    if (c1 == '\0')
+    {
+        if (c2 == '\0')
+            return 0;
         return -1;
-    else if (c1 > c2)
-        return 1;
-    return 0;
+    }
+    return 1;
 }
 
 int compare_lines_trimmed(const void *a, const void *b)
 {
-    const char* arg1 = *(const char**)a;
-    const char* arg2 = *(const char**)b;
+    const char* arg1 = (const char*)(((Line*)a)->start_ptr);
+    const char* arg2 = (const char*)(((Line*)b)->start_ptr);
 
     int i = 0;
     int j = 0;
@@ -337,7 +342,7 @@ int compare_lines_trimmed(const void *a, const void *b)
         {
             return -1;
         }
-        else if (c1 > c2)
+        else if (c1 > c2)\
         {
             return 1;
         }
@@ -363,24 +368,26 @@ int compare_lines_trimmed(const void *a, const void *b)
         }
     }
 
-    if (c1 < c2)
+    if (c1 == '\0')
+    {
+        if (c2 == '\0')
+            return 0;
         return -1;
-    else if (c1 > c2)
-        return 1;
-    return 0;
+    }
+    return 1;
 }
 
 int compare_lines_trimmed_backwards(const void *a, const void *b)
 {
-    const char* arg1 = *(const char**)a;
-    const char* arg2 = *(const char**)b;
+    const char* arg1 = (const char*)(((Line*)a)->start_ptr);
+    const char* arg2 = (const char*)(((Line*)b)->start_ptr);
 
-    int i = strlen(arg1) - 1;
-    int j = strlen(arg2) - 1;
+    int i = (((Line*)a)->length)-1;
+    int j = (((Line*)b)->length)-1;
     char c1 = arg1[i];
     char c2 = arg2[j];
 
-    while (i > 0 && j > 0)
+    while (i >= 0 && j >= 0)
     {
         if (c1 < c2)
         {
@@ -399,23 +406,25 @@ int compare_lines_trimmed_backwards(const void *a, const void *b)
 
         while (!is_letter(c1))
         {
-            if (i == 0) break;
+            if (i < 0) break;
             i--;
             c1 = arg1[i];
         }
 
         while (!is_letter(c2))
         {
-            if (j == 0) break;
+            if (j < 0) break;
             j--;
             c2 = arg2[j];
         }
     }
-    if (c1 < c2)
+    if (i < 0)
+    {
+        if (j < 0)
+            return 0;
         return -1;
-    else if (c1 > c2)
-        return 1;
-    return 0;
+    }
+    return 1;
 }
 
 
