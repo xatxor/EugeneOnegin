@@ -47,17 +47,17 @@ int is_letter(char c);
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    /*if (argc != 2)
     {
         printf("There is no text path in arguments! Bye!");
         return 0;
-    }
+    }*/
 
     Text onegin = {};
     Text_ctor(&onegin);
 
-    onegin.path = argv[1];
-    //onegin.path = "onegin.txt";
+    //onegin.path = argv[1];
+    onegin.path = "onegin.txt";
 
     if (Errors err = get_file_buf(&onegin))
     {
@@ -430,5 +430,5 @@ int compare_lines_trimmed_backwards(const void *a, const void *b)
 
 int is_letter(char c)
 {
-    return (((65 <= c) && (c <= 90)) || ((97 <= c) && (c <= 122)));
+    return ((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')));
 }
